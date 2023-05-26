@@ -1,0 +1,2 @@
+# wsetup
+windows setup script
