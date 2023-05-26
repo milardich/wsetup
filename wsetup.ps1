@@ -1,22 +1,16 @@
-# !!!! update windows !!!!! - user has to do that
-# or https://pureinfotech.com/install-windows-10-update-powershell/
-
-############# after windows is fully up to date, execute commands below #########
-
-
 function Disable-MouseAcceleration {
     # Check if the current user has administrative privileges
     $isAdmin = ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")
 
     if ($isAdmin) {
         # Disable mouse acceleration
-        Set-ItemProperty -Path "HKCU:\Control Panel\Mouse" -Name "MouseSpeed" -Value 1
+        Set-ItemProperty -Path "HKCU:\Control Panel\Mouse" -Name "MouseSpeed" -Value 0
         Set-ItemProperty -Path "HKCU:\Control Panel\Mouse" -Name "MouseThreshold1" -Value 0
         Set-ItemProperty -Path "HKCU:\Control Panel\Mouse" -Name "MouseThreshold2" -Value 0
-        Write-Host "Mouse acceleration has been disabled."
+        Write-Host "Mouse acceleration has been disabled." -ForegroundColor Green
     }
     else {
-        Write-Host "This function requires administrative privileges. Please run it as an administrator."
+        Write-Host "This function requires administrative privileges. Please run it as an administrator." -ForegroundColor DarkRed
     }
 }
 
@@ -31,14 +25,14 @@ function Disable-FastStartup {
         if ($fastStartupEnabled) {
             # Disable Fast Startup
             Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Power" -Name "HiberbootEnabled" -Value 0
-            Write-Host "Fast Startup has been disabled."
+            Write-Host "Fast Startup has been disabled." -ForegroundColor Green
         }
         else {
-            Write-Host "Fast Startup is already disabled."
+            Write-Host "Fast Startup is already disabled." -ForegroundColor Green
         }
     }
     else {
-        Write-Host "This script requires administrative privileges. Please run it as an administrator."
+        Write-Host "This script requires administrative privileges. Please run it as an administrator." -ForegroundColor DarkRed
     }
 }
 
@@ -69,6 +63,24 @@ function Set-UserShellFoldersLocation {
     if ($explorerProcess) {
         $explorerProcess | ForEach-Object { $_.CloseMainWindow() }
     }
+    
+    # Check if folders are successfuly moved to D drive
+    $folders = @(
+        "D:\Downloads",
+        "D:\Documents",
+        "D:\Videos",
+        "D:\Pictures",
+        "D:\Music"
+    )
+    foreach ($folder in $folders) {
+        if (Test-Path -Path $folder -PathType Container) {
+            Write-Host "Folder '$folder' sucessfuly moved." -ForegroundColor Green
+        }
+        else {
+            Write-Host "Folder '$folder' does not exist." -ForegroundColor Red
+        }
+    }
+
 }
 
 function Disable-StickyKeys {
@@ -78,14 +90,14 @@ function Disable-StickyKeys {
     if ($isAdmin) {
         # Disable the Sticky Key warning
         Set-ItemProperty -Path "HKCU:\Control Panel\Accessibility\StickyKeys" -Name "Flags" -Value 506
-        Write-Host "Sticky Key warning has been disabled."
+        Write-Host "Sticky Key warning has been disabled." -ForegroundColor Green
 
         # Turn off Sticky Keys
         Set-ItemProperty -Path "HKCU:\Control Panel\Accessibility\Keyboard Response" -Name "Flags" -Value 122
-        Write-Host "Sticky Keys has been turned off."
+        Write-Host "Sticky Keys has been turned off." -ForegroundColor Green
     }
     else {
-        Write-Host "This function requires administrative privileges. Please run it as an administrator."
+        Write-Host "This function requires administrative privileges. Please run it as an administrator." -ForegroundColor DarkRed
     }
 }
 
@@ -103,10 +115,10 @@ function Set-KeyboardLayout {
         $layoutExists = Get-WinUserLanguageList | Where-Object { $_.InputMethodTips -contains $layoutID }
         if (-not $layoutExists) {
             Add-WinUserLanguageList -LanguageTag $layoutID -Autonym $layoutName -EnglishName $layoutDisplayName -InputMethodTips $layoutID -InputMethodTips $layoutProfile
-            Write-Host "Croatian keyboard layout has been added."
+            Write-Host "Croatian keyboard layout has been added." -ForegroundColor Green
         }
         else {
-            Write-Host "Croatian keyboard layout is already added."
+            Write-Host "Croatian keyboard layout is already added." -ForegroundColor Green
         }
 
         # Set US English keyboard as primary/default
@@ -114,15 +126,15 @@ function Set-KeyboardLayout {
         if (-not $primaryLayout) {
             $currentLayouts = Get-WinUserLanguageList
             $currentLayouts[0].InputMethodTips = "04090409"
-            Set-WinUserLanguageList $currentLayouts -Force
-            Write-Host "US English keyboard set as primary/default."
+            Set-WinUserLanguageList $currentLayouts
+            Write-Host "US English keyboard set as primary/default." -ForegroundColor Green
         }
         else {
-            Write-Host "US English keyboard is already set as primary/default."
+            Write-Host "US English keyboard is already set as primary/default." -ForegroundColor Green
         }
     }
     else {
-        Write-Host "This function requires administrative privileges. Please run it as an administrator."
+        Write-Host "This function requires administrative privileges. Please run it as an administrator." -ForegroundColor DarkRed
     }
 }
 
@@ -136,10 +148,10 @@ function Set-CroatianDateTime {
         $timezone = Get-TimeZone -Id $timezoneId -ErrorAction SilentlyContinue
         if (-not $timezone) {
             Set-TimeZone -Id $timezoneId
-            Write-Host "Timezone has been set to Croatian timezone."
+            Write-Host "Timezone has been set to Croatian timezone." -ForegroundColor Green
         }
         else {
-            Write-Host "Timezone is already set to Croatian timezone."
+            Write-Host "Timezone is already set to Croatian timezone." -ForegroundColor Green
         }
 
         # Set the date and time format for Croatia
@@ -147,15 +159,11 @@ function Set-CroatianDateTime {
         $longDateFormat = "dddd, d. MMMM yyyy."
         $timeFormat = "H:mm:ss"
 
-        Set-Culture -CultureInfo "hr-HR" -Force
+        Set-Culture -CultureInfo "hr-HR"
         Set-ItemProperty -Path "HKCU:\Control Panel\International" -Name "sShortDate" -Value $shortDateFormat
         Set-ItemProperty -Path "HKCU:\Control Panel\International" -Name "sLongDate" -Value $longDateFormat
         Set-ItemProperty -Path "HKCU:\Control Panel\International" -Name "sTimeFormat" -Value $timeFormat
-        Write-Host "Date and time format has been set for Croatia."
-
-        # Set the day name after the date in the taskbar
-        Set-ItemProperty -Path "HKCU:\Control Panel\International" -Name "iDate" -Value 1
-        Write-Host "Day name after the date has been set in the taskbar."
+        Write-Host "Date and time format has been set to Croatian format." -ForegroundColor Green
     }
     else {
         Write-Host "This function requires administrative privileges. Please run it as an administrator."
@@ -187,18 +195,19 @@ function Set-TaskbarItems {
                     $verb = $item.Verbs() | Where-Object { $_.Name -eq "Unpin from Taskbar" }
                     if ($verb) {
                         $verb.DoIt()
-                        Write-Host "Unpinned $($item.Name) from the taskbar."
+                        Write-Host "Unpinned $($item.Name) from the taskbar." -ForegroundColor Green
                     }
                 }
             }
         }
     }
     else {
-        Write-Host "This function requires administrative privileges. Please run it as an administrator."
+        Write-Host "This function requires administrative privileges. Please run it as an administrator." -ForegroundColor DarkRed
     }
 }
 
-function Update-windows {
+function Update-Windows {
+    Write-Host "Updating windows..." -ForegroundColor Yellow
     Install-Module PSWindowsUpdate
     Get-WindowsUpdate -AcceptAll -Install -AutoReboot
 }
@@ -217,3 +226,22 @@ function Update-windows {
 #TODO: turn off unnecessary windows settings
 
 #TODO: activate windows (Microsoft Activation Script)
+
+
+
+
+$isAdmin = ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")
+if ($isAdmin) {
+    Powershell-Cmdlet -Confirm:$false
+    Disable-MouseAcceleration
+    Disable-StickyKeys
+    Disable-FastStartup
+    Set-UserShellFoldersLocation
+    Set-KeyboardLayout
+    Set-CroatianDateTime
+    Set-TaskbarItems
+    Update-Windows    
+}
+else {
+    Write-Host "You need Administrator privileges to run this script."
+}
